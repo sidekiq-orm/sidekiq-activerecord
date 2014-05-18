@@ -1,7 +1,4 @@
 require "sidekiq/activerecord/version"
 
-module Sidekiq
-  module Activerecord
-    # Your code goes here...
-  end
-end
+require 'lib/sidekiq/task_worker'
+require 'lib/sidekiq/manager_worker'
