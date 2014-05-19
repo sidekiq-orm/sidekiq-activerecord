@@ -1,5 +1,4 @@
 
 
-describe SideKiq::TaskWorker do
-
-end
+# describe Sidekiq::TaskWorker do
+# end

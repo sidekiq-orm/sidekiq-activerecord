@@ -3,7 +3,12 @@ require 'sidekiq/worker'
 
 module Sidekiq
   module TaskWorker
-    include Sidekiq::Worker
+    extend Sidekiq::Worker
+
+    def self.included(base)
+      base.extend(ClassMethods)
+      base.class_attribute :sidekiq_task_options_hash
+    end
 
     module ClassMethods
 
@@ -11,6 +16,7 @@ module Sidekiq
       #   class UserMailerTaskWorker
       #     include Sidekiq::TaskWorker
       #
+      #     sidekiq_task_model :user_model # or UserModel
       #     sidekiq_task_options :identifier_key => :token,
       #                          :model_class => :user
       #
@@ -46,6 +52,15 @@ module Sidekiq
         end
       end
 
+      def sidekiq_task_model(model_klass)
+        if model_klass.is_a?(String) or is_a?(Symbol)
+          model_klass.to_s.split('_').collect(&:capitalize).join.constantize
+        else
+          model_klass
+        end
+        self.get_sidekiq_task_options[:model_class] = model_klass
+      end
+
       def perform_on_model(model)
         model
       end
@@ -73,11 +88,7 @@ module Sidekiq
       def model_class
         klass = self.get_sidekiq_task_options[:model_class]
         raise NotImplementedError.new('`model_class` was not specified') unless klass.present?
-        if klass.is_a?(String) or is_a?(Symbol)
-          klass.to_s.split('_').collect(&:capitalize).join.constantize
-        else
-          klass
-        end
+        klass
       end
 
       def identifier_key

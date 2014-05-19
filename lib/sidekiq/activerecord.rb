@@ -1,4 +1,10 @@
+
+# gems
+require 'sidekiq'
+require 'active_record'
+
 require "sidekiq/activerecord/version"
 
-require 'lib/sidekiq/task_worker'
-require 'lib/sidekiq/manager_worker'
+# internal
+# require 'sidekiq/task_worker'
+require 'sidekiq/manager_worker'
