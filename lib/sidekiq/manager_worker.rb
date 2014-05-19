@@ -2,14 +2,15 @@ module Sidekiq
   module ManagerWorker
     extend Sidekiq::Worker
 
+    DEFAULT_IDENTIFIER_KEY = :id
+    DEFAULT_BATCH_SIZE = 1000
+
     def self.included(base)
       base.extend(ClassMethods)
       base.class_attribute :sidekiq_manager_options_hash
     end
 
     module ClassMethods
-
-      DEFAULT_IDENTIFIER_KEY = :id
 
       # For a given model collection, it delegates each model to a sub-worker (e.g TaskWorker)
       # Specify the TaskWoker with the `sidekiq_delegate_task_to` method.
@@ -48,6 +49,7 @@ module Sidekiq
           model_attributes = models_batch.map { |model| model_attributes(model) }
           Sidekiq::Client.push_bulk('class' => worker_class, 'args' => model_attributes)
         end
+        # set_runtime_options(nil)
       end
 
       # @required
@@ -70,7 +72,7 @@ module Sidekiq
       #   :additional_keys - additional model keys
       #   :batch_size - Specifies the size of the batch. Default to 1000.
       def sidekiq_manager_options(opts={})
-        self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}).stringify_keys)
+        self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}).symbolize_keys!)
       end
 
 
@@ -81,7 +83,7 @@ module Sidekiq
             :identifier_key => DEFAULT_IDENTIFIER_KEY,
             :additional_keys => [],
             :worker_class => nil,
-            :batch_size => 1000,
+            :batch_size => DEFAULT_BATCH_SIZE,
         }
       end
 

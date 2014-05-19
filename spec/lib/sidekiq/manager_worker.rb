@@ -33,6 +33,10 @@ describe Sidekiq::ManagerWorker do
       UserManagerWorker.perform_query_async(models_query, options)
     end
 
+    def mock_options(options)
+      UserManagerWorker.send(:sidekiq_manager_options, options)
+    end
+
     def batch_args(*ids)
       {'class' => worker_class, 'args' => ids.map{ |id| [id] }}
     end
@@ -47,12 +51,30 @@ describe Sidekiq::ManagerWorker do
     end
 
     context 'when the batch size is specified' do
+
       let(:batch_size) { 2 }
 
-      it 'pushes a bulk of user ids batches' do
-        expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1.id, user_2.id) )
-        expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_3.id) )
-        run_worker({batch_size: batch_size})
+      context 'as method arguments' do
+        it 'pushes a bulk of user ids batches' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1.id, user_2.id) )
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_3.id) )
+          run_worker({batch_size: batch_size})
+        end
+      end
+
+      context 'as sidekiq_manager_options' do
+
+        around do |example|
+          mock_options(:batch_size => batch_size)
+          example.run
+          mock_options(:batch_size => Sidekiq::ManagerWorker::DEFAULT_BATCH_SIZE)
+        end
+
+        it 'pushes a bulk of user ids batches' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1.id, user_2.id) )
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_3.id) )
+          run_worker
+        end
       end
     end
 
