@@ -16,11 +16,11 @@ Or install it yourself as:
 
     $ gem install sidekiq-activerecord
 
-## Why it's good?
+# Usage
 
 If you've been using Sidekiq for a while, you've probably noticed a recurring pattern in your workers;
 
-## Child-Parent Workers (aka Sidekiq::ManagerWorker)
+## Child-Parent Workers
 A parent worker which goes over some model collection and enqueues a child worker for each model in the collection.
 
 ```ruby
@@ -36,7 +36,7 @@ class ParentWorker
 end
 ```
 
-### Usage
+## Sidekiq::ManagerWorker - Example
 
 ```ruby
 class UserTaskWorker
@@ -55,7 +55,7 @@ end
 UserSyncer.perform_query_async(User.active, :batch_size => 300)
 ```
 
-## Model Task Workers (aka Sidekiq::TaskWorker)
+## Model Task Workers
 
 A worker which gets a model.id (like ChildWorker above) loads it, validates it and runs some logic on the model.
 
@@ -74,7 +74,8 @@ class ModelTaskWorker
 end
 ```
 
-### Usage
+## Sidekiq::TaskWorker - Example
+
 ```ruby
 class UserMailerTaskWorker
   include Sidekiq::TaskWorker
