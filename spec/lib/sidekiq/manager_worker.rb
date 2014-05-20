@@ -6,10 +6,6 @@ describe Sidekiq::ManagerWorker do
     allow(Sidekiq::Client).to receive(:push_bulk)
   end
 
-  after do
-    # User.delete_all
-  end
-
   class MockUserWorker; end
 
   let(:worker_class) { MockUserWorker }
