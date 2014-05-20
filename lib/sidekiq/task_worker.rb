@@ -1,6 +1,3 @@
-require 'sidekiq/client'
-require 'sidekiq/worker'
-
 module Sidekiq
   module TaskWorker
     extend Sidekiq::Worker
@@ -52,8 +49,8 @@ module Sidekiq
       end
 
       def sidekiq_task_model(model_klass)
-        if model_klass.is_a?(String) or is_a?(Symbol)
-          model_klass.to_s.split('_').collect(&:capitalize).join.constantize
+        if model_klass.is_a?(String) or model_klass.is_a?(Symbol)
+          model_klass = model_klass.to_s.split('_').collect(&:capitalize).join.constantize
         else
           model_klass
         end
@@ -78,7 +75,7 @@ module Sidekiq
       end
 
       
-      private
+      # private
 
       def fetch_model(identifier)
         model_class.find_by(identifier_key => identifier)
