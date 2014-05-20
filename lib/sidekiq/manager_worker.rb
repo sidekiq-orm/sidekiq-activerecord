@@ -11,7 +11,6 @@ module Sidekiq
     end
 
     module ClassMethods
-
       # For a given model collection, it delegates each model to a sub-worker (e.g TaskWorker)
       # Specify the TaskWoker with the `sidekiq_delegate_task_to` method.
       #
@@ -42,7 +41,7 @@ module Sidekiq
       # is equivalent to doing:
       #   User.active.each {|user| UserTaskWorker.peform(user.id) }
       #
-      def perform_query_async(models_query, options={})
+      def perform_query_async(models_query, options = {})
         set_runtime_options(options)
         models = models_query.select(selected_attributes)
         models.find_in_batches(batch_size: batch_size) do |models_batch|
@@ -57,11 +56,11 @@ module Sidekiq
       # @param worker_klass (Sidekiq::Worker, Symbol) - UserTaskWorker or :user_task_worker
       def sidekiq_delegate_task_to(worker_klass)
         if worker_klass.is_a?(String) or is_a?(Symbol)
-          worker_klass.to_s.split('_').collect(&:capitalize).join.constantize
+          worker_klass.to_s.split('_').map(&:capitalize).join.constantize
         else
           worker_klass
         end
-        self.get_sidekiq_manager_options[:worker_class] = worker_klass
+        get_sidekiq_manager_options[:worker_class] = worker_klass
       end
 
       # Allows customization for this type of ManagerWorker.
@@ -71,19 +70,18 @@ module Sidekiq
       #   :identifier_key - the model identifier column. Default 'id'
       #   :additional_keys - additional model keys
       #   :batch_size - Specifies the size of the batch. Default to 1000.
-      def sidekiq_manager_options(opts={})
+      def sidekiq_manager_options(opts = {})
         self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}).symbolize_keys!)
       end
-
 
       # private
 
       def default_worker_manager_options
         {
-            :identifier_key => DEFAULT_IDENTIFIER_KEY,
-            :additional_keys => [],
-            :worker_class => nil,
-            :batch_size => DEFAULT_BATCH_SIZE,
+          identifier_key: DEFAULT_IDENTIFIER_KEY,
+          additional_keys: [],
+          worker_class: nil,
+          batch_size: DEFAULT_BATCH_SIZE
         }
       end
 
@@ -102,7 +100,7 @@ module Sidekiq
       end
 
       def worker_class
-        raise NotImplementedError.new('`worker_class` was not specified') unless manager_options[:worker_class].present?
+        fail NotImplementedError.new('`worker_class` was not specified') unless manager_options[:worker_class].present?
         manager_options[:worker_class]
       end
 
@@ -123,7 +121,7 @@ module Sidekiq
       end
 
       def manager_options
-        self.get_sidekiq_manager_options.merge(runtime_options)
+        get_sidekiq_manager_options.merge(runtime_options)
       end
 
       def get_sidekiq_manager_options
@@ -138,7 +136,6 @@ module Sidekiq
         options = options.delete_if { |k, v| v.nil? } if options.present?
         @sidekiq_manager_runtime_options = options
       end
-
     end
   end
 end

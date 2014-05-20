@@ -8,7 +8,6 @@ module Sidekiq
     end
 
     module ClassMethods
-
       # @example:
       #   class UserMailerTaskWorker
       #     include Sidekiq::TaskWorker
@@ -49,12 +48,12 @@ module Sidekiq
       end
 
       def sidekiq_task_model(model_klass)
-        if model_klass.is_a?(String) or model_klass.is_a?(Symbol)
-          model_klass = model_klass.to_s.split('_').collect(&:capitalize).join.constantize
+        if model_klass.is_a?(String) || model_klass.is_a?(Symbol)
+          model_klass = model_klass.to_s.split('_').map(&:capitalize).join.constantize
         else
           model_klass
         end
-        self.get_sidekiq_task_options[:model_class] = model_klass
+        get_sidekiq_task_options[:model_class] = model_klass
       end
 
       def perform_on_model(model)
@@ -62,19 +61,18 @@ module Sidekiq
       end
 
       # recheck the if one of the items is still valid
-      def model_valid?(model)
+      def model_valid?(_model)
         true
       end
 
       # Hook to handel an invalid model
-      def invalid_model(model)
+      def invalid_model(_model)
       end
 
       # Hook to handel not found model
-      def not_found_model(identifier)
+      def not_found_model(_identifier)
       end
 
-      
       # private
 
       def fetch_model(identifier)
@@ -82,13 +80,13 @@ module Sidekiq
       end
 
       def model_class
-        klass = self.get_sidekiq_task_options[:model_class]
-        raise NotImplementedError.new('`model_class` was not specified') unless klass.present?
+        klass = get_sidekiq_task_options[:model_class]
+        fail NotImplementedError.new('`model_class` was not specified') unless klass.present?
         klass
       end
 
       def identifier_key
-        self.get_sidekiq_task_options[:identifier_key]
+        get_sidekiq_task_options[:identifier_key]
       end
 
       #
@@ -96,7 +94,7 @@ module Sidekiq
       # Legal options:
       #
       #   :identifier_key - the model identifier column. Default 'id'
-      def sidekiq_task_options(opts={})
+      def sidekiq_task_options(opts = {})
         self.sidekiq_task_options_hash = get_sidekiq_task_options.merge((opts || {}).symbolize_keys!)
       end
 
@@ -106,12 +104,9 @@ module Sidekiq
 
       def default_worker_task_options
         {
-            :identifier_key => :id,
-            :model_class => nil
+          identifier_key: :id
         }
       end
-
     end
-
   end
 end

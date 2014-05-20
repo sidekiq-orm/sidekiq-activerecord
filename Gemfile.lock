@@ -28,7 +28,7 @@ GEM
     connection_pool (2.0.0)
     database_cleaner (1.2.0)
     diff-lcs (1.2.5)
-    factory_girl (4.2.0)
+    factory_girl (4.4.0)
       activesupport (>= 3.0.0)
     i18n (0.6.9)
     json (1.8.1)
