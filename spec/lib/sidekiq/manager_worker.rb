@@ -43,11 +43,38 @@ describe Sidekiq::ManagerWorker do
 
     let(:model_ids) { [[user_1.id], [user_2.id], [user_3.id]] }
 
-    context 'when the batch size is not specified' do
-      it 'pushes a bulk of all user ids' do
-        expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1.id, user_2.id, user_3.id) )
-        run_worker
+    context 'when the worker_class is specified' do
+
+      class MockCustomWorker; end
+
+      let(:custom_worker_class) { MockCustomWorker }
+
+      def batch_args(*ids)
+        {'class' => custom_worker_class, 'args' => ids.map{ |id| [id] }}
       end
+
+      context 'as method arguments' do
+
+        it 'pushes a bulk of all user ids for the specified worker_class' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1.id, user_2.id, user_3.id) )
+          run_worker({:worker_class => custom_worker_class})
+        end
+      end
+
+      context 'as sidekiq_delegate_task_to' do
+
+        around do |example|
+          UserManagerWorker.send(:sidekiq_delegate_task_to, custom_worker_class)
+          example.run
+          UserManagerWorker.send(:sidekiq_delegate_task_to, worker_class)
+        end
+
+        it 'pushes a bulk of all user ids for the specified worker_class' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1.id, user_2.id, user_3.id) )
+          run_worker
+        end
+      end
+
     end
 
     context 'when the batch size is specified' do
@@ -80,14 +107,32 @@ describe Sidekiq::ManagerWorker do
 
     context 'when the additional_keys are specified' do
 
+      let(:additional_keys) { [:email, :status] }
+
       def batch_args(*users)
         {'class' => worker_class, 'args' => users.map{ |user| [user.id, user.email, user.status] }}
       end
 
-      it 'pushes a bulk of all user ids and additional_keys' do
-        expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
-        run_worker({additional_keys: [:email, :status]})
+      context 'as method arguments' do
+        it 'pushes a bulk of all user ids and additional_keys' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
+          run_worker({additional_keys: additional_keys})
+        end
       end
+
+      context 'as sidekiq_manager_options' do
+        around do |example|
+          mock_options(:additional_keys => additional_keys)
+          example.run
+          mock_options(:additional_keys => [])
+        end
+
+        it 'pushes a bulk of all user ids and additional_keys' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
+          run_worker
+        end
+      end
+
     end
 
     context 'when the identifier_key is specified' do
@@ -96,10 +141,29 @@ describe Sidekiq::ManagerWorker do
         {'class' => worker_class, 'args' => users.map{ |user| [user.email] }}
       end
 
-      it 'pushes a bulk of all user emails as the identifier_key' do
-        expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
-        run_worker({identifier_key: :email})
+      let(:identifier_key) { :email }
+
+      context 'as method arguments' do
+        it 'pushes a bulk of all user emails as the identifier_key' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
+          run_worker({identifier_key: identifier_key})
+        end
       end
+
+      context 'as sidekiq_manager_options' do
+
+        around do |example|
+          mock_options(:identifier_key => identifier_key)
+          example.run
+          mock_options(:identifier_key => Sidekiq::ManagerWorker::DEFAULT_IDENTIFIER_KEY)
+        end
+
+        it 'pushes a bulk of all user emails as the identifier_key' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
+          run_worker
+        end
+      end
+
     end
 
   end
