@@ -1,6 +1,6 @@
 # Sidekiq::Activerecord
 
-TODO: Write a gem description
+Encapsulates various interactions between Sidekiq and ActiveRecord.
 
 ## Installation
 
