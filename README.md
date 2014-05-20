@@ -20,7 +20,7 @@ Or install it yourself as:
 
 If you've been using Sidekiq for a while, you've probably noticed a recurring pattern in your workers;
 
-### Child-Parent Workers (aka Sidekiq::ManagerWorker)
+## Child-Parent Workers (aka Sidekiq::ManagerWorker)
 A parent worker which goes over some model collection and enqueues a child worker for each model in the collection.
 
 ```ruby
@@ -36,7 +36,26 @@ class ParentWorker
 end
 ```
 
-### Model Task Workers (aka Sidekiq::TaskWorker)
+### Usage
+
+```ruby
+class UserTaskWorker
+  include Sidekiq::TaskWorker
+end
+
+class UserSyncer
+  include Sidekiq::ManagerWorker
+
+  sidekiq_delegate_task_to :user_task_worker # or UserTaskWorker
+  sidekiq_manager_options :batch_size => 500,
+                          :identifier_key => :user_token,
+                          :additional_keys => [:status]
+end
+
+UserSyncer.perform_query_async(User.active, :batch_size => 300)
+```
+
+## Model Task Workers (aka Sidekiq::TaskWorker)
 
 A worker which gets a model.id (like ChildWorker above) loads it, validates it and runs some logic on the model.
 
@@ -55,7 +74,37 @@ class ModelTaskWorker
 end
 ```
 
-## Usage
+### Usage
+```ruby
+class UserMailerTaskWorker
+  include Sidekiq::TaskWorker
+
+  sidekiq_task_model :user_model # or UserModel
+  sidekiq_task_options :identifier_key => :token
+
+  def perform_on_model(user, email_type)
+    UserMailer.deliver_registration_confirmation(user, email_type)
+  end
+
+  # optional
+  def not_found_model(token)
+    Log.error "User not found for token:#{token}"
+  end
+
+  # optional
+  def model_valid?(user)
+    user.active?
+  end
+
+  # optional
+  def invalid_model(user)
+    Log.error "User #{user.token} is invalid"
+  end
+
+end
+
+
+UserMailerTaskWorker.perform(user.id, :new_email)
 
 ## Contributing
 
