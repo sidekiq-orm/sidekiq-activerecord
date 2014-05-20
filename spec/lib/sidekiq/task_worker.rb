@@ -14,8 +14,33 @@ describe Sidekiq::TaskWorker do
     task_worker.perform(user.id)
   end
 
-
   describe 'sidekiq_task_model' do
+
+    context 'when the identifier_key is specified' do
+      before do
+        class UserTaskWorker
+          sidekiq_task_model User
+          sidekiq_task_options :identifier_key => :email
+        end
+      end
+
+      after do
+        class UserTaskWorker
+          sidekiq_task_model nil
+          sidekiq_task_options :identifier_key => :id
+        end
+      end
+
+      it 'sets the identifier_key' do
+        identifier = task_worker.send(:identifier_key)
+        expect(identifier).to eq :email
+      end
+
+      it 'calls the perform_on_model with the model' do
+        expect(task_worker).to receive(:perform_on_model).with(user)
+        task_worker.perform(user.email)
+      end
+    end
 
     context 'when a Class is specified' do
 
@@ -26,7 +51,7 @@ describe Sidekiq::TaskWorker do
       end
 
       it 'sets the model' do
-        klass = subject.send(:model_class)
+        klass = task_worker.send(:model_class)
         expect(klass).to eq User
       end
 
@@ -40,7 +65,7 @@ describe Sidekiq::TaskWorker do
       end
 
       it 'sets the model' do
-        klass = subject.send(:model_class)
+        klass = task_worker.send(:model_class)
         expect(klass).to eq User
       end
 
@@ -53,12 +78,12 @@ describe Sidekiq::TaskWorker do
         end
 
         it 'calls the not_found_model hook' do
-          expect(subject).to receive(:not_found_model).with(trash_id)
+          expect(task_worker).to receive(:not_found_model).with(trash_id)
           run_worker
         end
 
         it 'skips the perform_on_model' do
-          expect(subject).to_not receive(:perform_on_model)
+          expect(task_worker).to_not receive(:perform_on_model)
           run_worker
         end
       end
@@ -67,7 +92,7 @@ describe Sidekiq::TaskWorker do
 
         context 'when the model validation is specified' do
           it 'calls the model_valid? hook' do
-            expect(subject).to receive(:model_valid?).with(user)
+            expect(task_worker).to receive(:model_valid?).with(user)
             run_worker
           end
         end

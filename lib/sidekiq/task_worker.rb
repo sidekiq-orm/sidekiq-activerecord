@@ -97,7 +97,7 @@ module Sidekiq
       #
       #   :identifier_key - the model identifier column. Default 'id'
       def sidekiq_task_options(opts={})
-        self.sidekiq_task_options_hash = get_sidekiq_task_options.merge((opts || {}).stringify_keys)
+        self.sidekiq_task_options_hash = get_sidekiq_task_options.merge((opts || {}).symbolize_keys!)
       end
 
       def get_sidekiq_task_options
