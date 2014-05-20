@@ -106,6 +106,7 @@ end
 
 
 UserMailerTaskWorker.perform(user.id, :new_email)
+```
 
 ## Contributing
 
