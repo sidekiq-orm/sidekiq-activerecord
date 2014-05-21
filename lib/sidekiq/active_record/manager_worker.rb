@@ -40,23 +40,23 @@ module Sidekiq
         #
         #
         # is equivalent to doing:
-        #   User.active.each {|user| UserTaskWorker.peform(user.id) }
+        #   User.active.each {|user| UserTaskWorker.perform(user.id) }
         #
         def perform_query_async(models_query, options = {})
           set_runtime_options(options)
           models = models_query.select(selected_attributes)
           models.find_in_batches(batch_size: batch_size) do |models_batch|
             model_attributes = models_batch.map { |model| model_attributes(model) }
-            Sidekiq::Client.push_bulk('class' => worker_class, 'args' => model_attributes)
+            Sidekiq::Client.push_bulk(class: worker_class, args: model_attributes)
           end
-          # set_runtime_options(nil)
         end
 
         # @required
         # The task worker to delegate to.
         # @param worker_klass (Sidekiq::Worker, Symbol) - UserTaskWorker or :user_task_worker
         def sidekiq_delegate_task_to(worker_klass)
-          if worker_klass.is_a?(String) or is_a?(Symbol)
+          case worker_klass
+          when String, Symbol
             worker_klass.to_s.split('_').map(&:capitalize).join.constantize
           else
             worker_klass
@@ -72,7 +72,7 @@ module Sidekiq
         #   :additional_keys - additional model keys
         #   :batch_size - Specifies the size of the batch. Default to 1000.
         def sidekiq_manager_options(opts = {})
-          self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}).symbolize_keys!)
+          self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
         end
 
         # private
@@ -81,7 +81,6 @@ module Sidekiq
           {
               identifier_key: DEFAULT_IDENTIFIER_KEY,
               additional_keys: [],
-              worker_class: nil,
               batch_size: DEFAULT_BATCH_SIZE
           }
         end
@@ -133,9 +132,8 @@ module Sidekiq
           @sidekiq_manager_runtime_options || {}
         end
 
-        def set_runtime_options(options)
-          options = options.delete_if { |k, v| v.nil? } if options.present?
-          @sidekiq_manager_runtime_options = options
+        def set_runtime_options(options={})
+          @sidekiq_manager_runtime_options = options.delete_if { |_, v| v.to_s.strip == '' }
         end
       end
     end

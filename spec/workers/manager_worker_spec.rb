@@ -32,7 +32,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
     end
 
     def batch_args(*ids)
-      {'class' => worker_class, 'args' => ids.map{ |id| [id] }}
+      {class: worker_class, args: ids.map{ |id| [id] }}
     end
 
     let(:model_ids) { [[user_1.id], [user_2.id], [user_3.id]] }
@@ -44,7 +44,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
       let(:custom_worker_class) { MockCustomWorker }
 
       def batch_args(*ids)
-        {'class' => custom_worker_class, 'args' => ids.map{ |id| [id] }}
+        {class: custom_worker_class, args: ids.map{ |id| [id] }}
       end
 
       context 'as method arguments' do
@@ -104,7 +104,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
       let(:additional_keys) { [:email, :status] }
 
       def batch_args(*users)
-        {'class' => worker_class, 'args' => users.map{ |user| [user.id, user.email, user.status] }}
+        {class: worker_class, args: users.map{ |user| [user.id, user.email, user.status] }}
       end
 
       context 'as method arguments' do
@@ -132,7 +132,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
     context 'when the identifier_key is specified' do
 
       def batch_args(*users)
-        {'class' => worker_class, 'args' => users.map{ |user| [user.email] }}
+        {class: worker_class, args: users.map{ |user| [user.email] }}
       end
 
       let(:identifier_key) { :email }
