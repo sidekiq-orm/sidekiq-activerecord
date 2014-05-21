@@ -11,7 +11,7 @@ module Sidekiq
       module ClassMethods
         # @example:
         #   class UserMailerTaskWorker
-        #     include Sidekiq::TaskWorker
+        #     include Sidekiq::ActiveRecord::TaskWorker
         #
         #     sidekiq_task_model :user_model # or UserModel
         #     sidekiq_task_options :identifier_key => :token

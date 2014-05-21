@@ -13,7 +13,7 @@ module Sidekiq
 
       module ClassMethods
         # For a given model collection, it delegates each model to a sub-worker (e.g TaskWorker)
-        # Specify the TaskWoker with the `sidekiq_delegate_task_to` method.
+        # Specify the TaskWorker with the `sidekiq_delegate_task_to` method.
         #
         # @param models_query ActiveRecord::Relation
         # @param options Hash
@@ -24,11 +24,11 @@ module Sidekiq
         #
         # @example:
         #   class UserTaskWorker
-        #     include Sidekiq::TaskWorker
+        #     include Sidekiq::ActiveRecord::TaskWorker
         #   end
         #
         #   class UserSyncer
-        #     include Sidekiq::ManagerWorker
+        #     include Sidekiq::ActiveRecord::ManagerWorker
         #
         #     sidekiq_delegate_task_to :user_task_worker # or UserTaskWorker
         #     sidekiq_manager_options :batch_size => 500,
