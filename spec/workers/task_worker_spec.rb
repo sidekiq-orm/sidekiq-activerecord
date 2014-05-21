@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe Sidekiq::TaskWorker do
 
   class UserTaskWorker
