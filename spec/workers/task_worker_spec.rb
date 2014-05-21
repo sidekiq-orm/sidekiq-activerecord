@@ -1,7 +1,7 @@
-describe Sidekiq::TaskWorker do
+describe Sidekiq::ActiveRecord::TaskWorker do
 
   class UserTaskWorker
-    include Sidekiq::TaskWorker
+    include Sidekiq::ActiveRecord::TaskWorker
   end
 
   let!(:user) { create(:user, :active) }

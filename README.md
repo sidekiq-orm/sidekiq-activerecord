@@ -44,7 +44,7 @@ class UserTaskWorker
 end
 
 class UserSyncer
-  include Sidekiq::ManagerWorker
+  include Sidekiq::ActiveRecord::ManagerWorker
 
   sidekiq_delegate_task_to :user_task_worker # or UserTaskWorker
   sidekiq_manager_options :batch_size => 500,
@@ -78,7 +78,7 @@ end
 
 ```ruby
 class UserMailerTaskWorker
-  include Sidekiq::TaskWorker
+  include Sidekiq::ActiveRecord::TaskWorker
 
   sidekiq_task_model :user_model # or UserModel
   sidekiq_task_options :identifier_key => :token
@@ -110,7 +110,7 @@ UserMailerTaskWorker.perform(user.id, :new_email)
 
 ## Contributing
 
-1. Fork it ( http://github.com/<my-github-username>/sidekiq-activerecord/fork )
+1. Fork it ( http://github.com/yelled3/sidekiq-activerecord/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)

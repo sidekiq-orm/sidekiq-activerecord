@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'sidekiq/activerecord/version'
+require 'sidekiq/active_record/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'sidekiq-activerecord'
-  spec.version       = Sidekiq::Activerecord::VERSION
+  spec.version       = Sidekiq::ActiveRecord::VERSION
   spec.authors       = ['Adam Farhi']
   spec.email         = ['afarhi@ebay.com']
   spec.summary       = 'Encapsulates various interactions between Sidekiq and ActiveRecord'
