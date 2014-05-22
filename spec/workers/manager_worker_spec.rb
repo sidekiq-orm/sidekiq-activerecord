@@ -1,6 +1,4 @@
-require 'spec_helper'
-
-describe Sidekiq::ManagerWorker do
+describe Sidekiq::ActiveRecord::ManagerWorker do
 
   before do
     allow(Sidekiq::Client).to receive(:push_bulk)
@@ -12,7 +10,7 @@ describe Sidekiq::ManagerWorker do
   let(:sidekiq_client) { Sidekiq::Client }
 
   class UserManagerWorker
-    include Sidekiq::ManagerWorker
+    include Sidekiq::ActiveRecord::ManagerWorker
     sidekiq_delegate_task_to MockUserWorker
   end
 
@@ -34,7 +32,7 @@ describe Sidekiq::ManagerWorker do
     end
 
     def batch_args(*ids)
-      {'class' => worker_class, 'args' => ids.map{ |id| [id] }}
+      {class: worker_class, args: ids.map{ |id| [id] }}
     end
 
     let(:model_ids) { [[user_1.id], [user_2.id], [user_3.id]] }
@@ -46,7 +44,7 @@ describe Sidekiq::ManagerWorker do
       let(:custom_worker_class) { MockCustomWorker }
 
       def batch_args(*ids)
-        {'class' => custom_worker_class, 'args' => ids.map{ |id| [id] }}
+        {class: custom_worker_class, args: ids.map{ |id| [id] }}
       end
 
       context 'as method arguments' do
@@ -90,7 +88,7 @@ describe Sidekiq::ManagerWorker do
         around do |example|
           mock_options(:batch_size => batch_size)
           example.run
-          mock_options(:batch_size => Sidekiq::ManagerWorker::DEFAULT_BATCH_SIZE)
+          mock_options(:batch_size => Sidekiq::ActiveRecord::ManagerWorker::DEFAULT_BATCH_SIZE)
         end
 
         it 'pushes a bulk of user ids batches' do
@@ -106,7 +104,7 @@ describe Sidekiq::ManagerWorker do
       let(:additional_keys) { [:email, :status] }
 
       def batch_args(*users)
-        {'class' => worker_class, 'args' => users.map{ |user| [user.id, user.email, user.status] }}
+        {class: worker_class, args: users.map{ |user| [user.id, user.email, user.status] }}
       end
 
       context 'as method arguments' do
@@ -134,7 +132,7 @@ describe Sidekiq::ManagerWorker do
     context 'when the identifier_key is specified' do
 
       def batch_args(*users)
-        {'class' => worker_class, 'args' => users.map{ |user| [user.email] }}
+        {class: worker_class, args: users.map{ |user| [user.email] }}
       end
 
       let(:identifier_key) { :email }
@@ -151,7 +149,7 @@ describe Sidekiq::ManagerWorker do
         around do |example|
           mock_options(:identifier_key => identifier_key)
           example.run
-          mock_options(:identifier_key => Sidekiq::ManagerWorker::DEFAULT_IDENTIFIER_KEY)
+          mock_options(:identifier_key => Sidekiq::ActiveRecord::ManagerWorker::DEFAULT_IDENTIFIER_KEY)
         end
 
         it 'pushes a bulk of all user emails as the identifier_key' do

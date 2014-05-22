@@ -1,10 +1,16 @@
-
-# gems
+# dependencies
 require 'sidekiq'
 require 'active_record'
 
-require "sidekiq/activerecord/version"
+# core
+require 'sidekiq/active_record/version'
 
-# internal
-require 'sidekiq/task_worker'
-require 'sidekiq/manager_worker'
+
+module Sidekiq
+  module ActiveRecord
+    extend ActiveSupport::Autoload
+
+    autoload :TaskWorker
+    autoload :ManagerWorker
+  end
+end
