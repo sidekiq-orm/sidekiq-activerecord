@@ -7,7 +7,9 @@ module Sidekiq
       DEFAULT_BATCH_SIZE = 1000
 
       def self.included(base)
+        base.extend(Sidekiq::Worker::ClassMethods)
         base.extend(ClassMethods)
+        base.class_attribute :sidekiq_options_hash
         base.class_attribute :sidekiq_manager_options_hash
       end
 

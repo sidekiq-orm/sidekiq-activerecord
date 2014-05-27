@@ -40,6 +40,20 @@ describe Sidekiq::ActiveRecord::TaskWorker do
       end
     end
 
+    context 'when a sidekiq_options is specified' do
+
+      before do
+        class UserTaskWorker
+          sidekiq_options :queue => :user_queue
+        end
+      end
+
+      it 'sets the queue' do
+        sidekiq_options = task_worker.send(:get_sidekiq_options)
+        expect(sidekiq_options['queue']).to eq :user_queue
+      end
+    end
+
     context 'when a Class is specified' do
 
       before do

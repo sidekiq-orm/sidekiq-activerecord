@@ -1,10 +1,11 @@
 module Sidekiq
   module ActiveRecord
     module TaskWorker
-      extend Sidekiq::Worker
 
       def self.included(base)
+        base.extend(Sidekiq::Worker::ClassMethods)
         base.extend(ClassMethods)
+        base.class_attribute :sidekiq_options_hash
         base.class_attribute :sidekiq_task_options_hash
       end
 

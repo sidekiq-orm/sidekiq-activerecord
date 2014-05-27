@@ -37,6 +37,20 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
 
     let(:model_ids) { [[user_1.id], [user_2.id], [user_3.id]] }
 
+    context 'when a sidekiq_options is specified' do
+
+      before do
+        class UserManagerWorker
+          sidekiq_options :queue => :user_manager_queue
+        end
+      end
+
+      it 'sets the queue' do
+        sidekiq_options = UserManagerWorker.send(:get_sidekiq_options)
+        expect(sidekiq_options['queue']).to eq :user_manager_queue
+      end
+    end
+
     context 'when the worker_class is specified' do
 
       class MockCustomWorker; end
