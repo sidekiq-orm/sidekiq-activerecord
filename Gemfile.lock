@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    sidekiq-activerecord (0.0.1)
+    sidekiq-activerecord (0.0.2)
       activerecord (>= 4.0)
       sidekiq (>= 2.16)
 
@@ -49,7 +49,7 @@ GEM
     rspec-mocks (3.0.0.rc1)
       rspec-support (= 3.0.0.rc1)
     rspec-support (3.0.0.rc1)
-    sidekiq (3.0.2)
+    sidekiq (3.1.0)
       celluloid (>= 0.15.2)
       connection_pool (>= 2.0.0)
       json
