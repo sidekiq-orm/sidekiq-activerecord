@@ -38,7 +38,7 @@ module Sidekiq
         #
         #   UserMailerTaskWorker.perform(user.id, :new_email)
         #
-        def perform(identifier, *args)
+        def perform_async(identifier, *args)
           model = fetch_model(identifier)
           return not_found_model(identifier) unless model.present?
 

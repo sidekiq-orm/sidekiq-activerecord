@@ -6,10 +6,10 @@ describe Sidekiq::ActiveRecord::TaskWorker do
 
   let!(:user) { create(:user, :active) }
 
-  subject(:task_worker)  {UserTaskWorker }
+  subject(:task_worker)  { UserTaskWorker }
 
   def run_worker
-    task_worker.perform(user.id)
+    task_worker.perform_async(user.id)
   end
 
   describe 'sidekiq_task_model' do
@@ -36,7 +36,7 @@ describe Sidekiq::ActiveRecord::TaskWorker do
 
       it 'calls the perform_on_model with the model' do
         expect(task_worker).to receive(:perform_on_model).with(user)
-        task_worker.perform(user.email)
+        task_worker.perform_async(user.email)
       end
     end
 
@@ -86,7 +86,7 @@ describe Sidekiq::ActiveRecord::TaskWorker do
         let(:trash_id) { user.id + 10 }
 
         def run_worker
-          task_worker.perform(trash_id)
+          task_worker.perform_async(trash_id)
         end
 
         it 'calls the not_found_model hook' do
@@ -131,7 +131,7 @@ describe Sidekiq::ActiveRecord::TaskWorker do
             context 'when passing additional arguments' do
               it 'calls the perform_on_model with the model' do
                 expect(task_worker).to receive(:perform_on_model).with(user, user.email)
-                task_worker.perform(user.id, user.email)
+                task_worker.perform_async(user.id, user.email)
               end
             end
 
