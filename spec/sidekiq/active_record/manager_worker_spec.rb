@@ -88,7 +88,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
         around do |example|
           mock_options(:batch_size => batch_size)
           example.run
-          mock_options(:batch_size => Sidekiq::ActiveRecord::ManagerWorker::DEFAULT_BATCH_SIZE)
+          mock_options(:batch_size => Sidekiq::Orm::ManagerWorker::DEFAULT_BATCH_SIZE)
         end
 
         it 'pushes a bulk of user ids batches' do
@@ -149,7 +149,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
         around do |example|
           mock_options(:identifier_key => identifier_key)
           example.run
-          mock_options(:identifier_key => Sidekiq::ActiveRecord::ManagerWorker::DEFAULT_IDENTIFIER_KEY)
+          mock_options(:identifier_key => Sidekiq::Orm::ManagerWorker::DEFAULT_IDENTIFIER_KEY)
         end
 
         it 'pushes a bulk of all user emails as the identifier_key' do
