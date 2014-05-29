@@ -43,7 +43,7 @@ module Sidekiq
         #
         def perform_query_async(models_query, options = {})
           set_runtime_options(options)
-          models = models_query.select(selected_attributes)
+          models = prepare_models_query(models_query)
           models.find_in_batches(batch_size: batch_size) do |models_batch|
             model_attributes = models_batch.map { |model| model_attributes(model) }
             Sidekiq::Client.push_bulk(class: worker_class, args: model_attributes)
@@ -90,19 +90,14 @@ module Sidekiq
           additional_attributes.unshift(id_attribute)
         end
 
-        def selected_attributes
-          attrs = [identifier_key, additional_keys]
-          attrs << DEFAULT_IDENTIFIER_KEY unless default_identifier? # :id must be included
-          attrs
+        def prepare_models_query(models_query)
+          selected_attributes = [models_query.primary_key.to_sym, identifier_key, additional_keys].uniq
+          models_query.select(selected_attributes)
         end
 
         def worker_class
           fail NotImplementedError.new('`worker_class` was not specified') unless manager_options[:worker_class].present?
           manager_options[:worker_class]
-        end
-
-        def default_identifier?
-          identifier_key == DEFAULT_IDENTIFIER_KEY
         end
 
         def identifier_key
