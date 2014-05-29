@@ -9,8 +9,7 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
   let(:worker_class) { MockUserWorker }
   let(:sidekiq_client) { Sidekiq::Client }
 
-  class UserManagerWorker
-    include Sidekiq::ActiveRecord::ManagerWorker
+  class UserManagerWorker < Sidekiq::ActiveRecord::ManagerWorker
     sidekiq_delegate_task_to MockUserWorker
   end
 

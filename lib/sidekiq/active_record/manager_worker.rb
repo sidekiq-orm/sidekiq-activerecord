@@ -1,19 +1,14 @@
 module Sidekiq
   module ActiveRecord
-    module ManagerWorker
-      extend Sidekiq::Worker
+    class ManagerWorker
+      include Sidekiq::Worker
 
       DEFAULT_IDENTIFIER_KEY = :id
       DEFAULT_BATCH_SIZE = 1000
 
-      def self.included(base)
-        base.extend(Sidekiq::Worker::ClassMethods)
-        base.extend(ClassMethods)
-        base.class_attribute :sidekiq_options_hash
-        base.class_attribute :sidekiq_manager_options_hash
-      end
 
-      module ClassMethods
+      class << self
+
         # For a given model collection, it delegates each model to a sub-worker (e.g TaskWorker)
         # Specify the TaskWorker with the `sidekiq_delegate_task_to` method.
         #
@@ -26,7 +21,9 @@ module Sidekiq
         #
         # @example:
         #   class UserTaskWorker
-        #     include Sidekiq::ActiveRecord::TaskWorker
+        #     def perform(user_id)
+        #       # user task logic
+        #     end
         #   end
         #
         #   class UserSyncer
@@ -46,7 +43,7 @@ module Sidekiq
         #
         def perform_query_async(models_query, options = {})
           set_runtime_options(options)
-          models = models_query.select(selected_attributes)
+          models = prepare_models_query(models_query)
           models.find_in_batches(batch_size: batch_size) do |models_batch|
             model_attributes = models_batch.map { |model| model_attributes(model) }
             Sidekiq::Client.push_bulk(class: worker_class, args: model_attributes)
@@ -74,10 +71,8 @@ module Sidekiq
         #   :additional_keys - additional model keys
         #   :batch_size - Specifies the size of the batch. Default to 1000.
         def sidekiq_manager_options(opts = {})
-          self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
+          @sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
         end
-
-        # private
 
         def default_worker_manager_options
           {
@@ -95,19 +90,14 @@ module Sidekiq
           additional_attributes.unshift(id_attribute)
         end
 
-        def selected_attributes
-          attrs = [identifier_key, additional_keys]
-          attrs << DEFAULT_IDENTIFIER_KEY unless default_identifier? # :id must be included
-          attrs
+        def prepare_models_query(models_query)
+          selected_attributes = [models_query.primary_key.to_sym, identifier_key, additional_keys].uniq
+          models_query.select(selected_attributes)
         end
 
         def worker_class
           fail NotImplementedError.new('`worker_class` was not specified') unless manager_options[:worker_class].present?
           manager_options[:worker_class]
-        end
-
-        def default_identifier?
-          identifier_key == DEFAULT_IDENTIFIER_KEY
         end
 
         def identifier_key
@@ -127,7 +117,7 @@ module Sidekiq
         end
 
         def get_sidekiq_manager_options
-          self.sidekiq_manager_options_hash ||= default_worker_manager_options
+          @sidekiq_manager_options_hash ||= default_worker_manager_options
         end
 
         def runtime_options
@@ -137,7 +127,9 @@ module Sidekiq
         def set_runtime_options(options={})
           @sidekiq_manager_runtime_options = options.delete_if { |_, v| v.to_s.strip == '' }
         end
+
       end
+
     end
   end
 end
