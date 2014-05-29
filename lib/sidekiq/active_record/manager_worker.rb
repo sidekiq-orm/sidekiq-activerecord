@@ -1,19 +1,14 @@
 module Sidekiq
   module ActiveRecord
-    module ManagerWorker
-      extend Sidekiq::Worker
+    class ManagerWorker
+      include Sidekiq::Worker
 
       DEFAULT_IDENTIFIER_KEY = :id
       DEFAULT_BATCH_SIZE = 1000
 
-      def self.included(base)
-        base.extend(Sidekiq::Worker::ClassMethods)
-        base.extend(ClassMethods)
-        base.class_attribute :sidekiq_options_hash
-        base.class_attribute :sidekiq_manager_options_hash
-      end
 
-      module ClassMethods
+      class << self
+
         # For a given model collection, it delegates each model to a sub-worker (e.g TaskWorker)
         # Specify the TaskWorker with the `sidekiq_delegate_task_to` method.
         #
@@ -26,7 +21,9 @@ module Sidekiq
         #
         # @example:
         #   class UserTaskWorker
-        #     include Sidekiq::ActiveRecord::TaskWorker
+        #     def perform(user_id)
+        #       # user task logic
+        #     end
         #   end
         #
         #   class UserSyncer
@@ -74,10 +71,8 @@ module Sidekiq
         #   :additional_keys - additional model keys
         #   :batch_size - Specifies the size of the batch. Default to 1000.
         def sidekiq_manager_options(opts = {})
-          self.sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
+          @sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
         end
-
-        # private
 
         def default_worker_manager_options
           {
@@ -127,7 +122,7 @@ module Sidekiq
         end
 
         def get_sidekiq_manager_options
-          self.sidekiq_manager_options_hash ||= default_worker_manager_options
+          @sidekiq_manager_options_hash ||= default_worker_manager_options
         end
 
         def runtime_options
@@ -137,7 +132,9 @@ module Sidekiq
         def set_runtime_options(options={})
           @sidekiq_manager_runtime_options = options.delete_if { |_, v| v.to_s.strip == '' }
         end
+
       end
+
     end
   end
 end
