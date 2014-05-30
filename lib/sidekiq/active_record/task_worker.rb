@@ -54,10 +54,12 @@ module Sidekiq
 
       # Hook to handel an invalid model
       def invalid_model
+        task_model
       end
 
       # Hook to handel not found model
       def not_found_model(identifier)
+        identifier
       end
 
       def fetch_model(identifier)
@@ -97,16 +99,31 @@ module Sidekiq
         #
         # then the worker will have access to `admin_user`, which is an alias to `task_model`
         #
-        #   def perform_on_model
+        #   def perform_on_admin_user
         #     admin_user == task_model
         #   end
+        #
+        # it will add the following method aliases to the hooks:
+        #
+        #   def not_found_admin_user; end
+        #   def admin_user_valid?; end
+        #   def invalid_admin_user; end
         #
         def setup_task_model_alias(model_klass_name)
           if model_klass_name.is_a?(Class)
             model_klass_name = model_klass_name.name.underscore
           end
-          self.class_exec do
-            alias_method model_klass_name, :task_model
+          {
+            :task_model =>       model_klass_name,
+            :fetch_model =>      "fetch_#{model_klass_name}",
+            :not_found_model =>  "not_found_#{model_klass_name}",
+            :model_valid? =>     "#{model_klass_name}_valid?",
+            :invalid_model =>    "invalid_#{model_klass_name}",
+            :perform_on_model => "perform_on_#{model_klass_name}"
+          }.each do |old_name, new_name|
+            self.class_exec do
+              alias_method new_name.to_sym, old_name
+            end
           end
         end
 

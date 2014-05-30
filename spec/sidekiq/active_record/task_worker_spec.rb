@@ -122,6 +122,13 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           expect(task_worker).to_not receive(:perform_on_model)
           run_worker
         end
+
+        describe 'method alias' do
+          it 'has an alias of not_found_model hook with for the specified task model name' do
+            expect(task_worker.not_found_user(trash_id)).to eq trash_id
+          end
+        end
+
       end
 
       context 'when the mode is found' do
@@ -130,6 +137,24 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           it 'calls the model_valid? hook' do
             expect(task_worker).to receive(:model_valid?)
             run_worker
+          end
+
+          describe 'method alias' do
+
+            let(:mock_result) { 1234 }
+
+            before do
+              class UserTaskWorker
+                def user_valid?
+                  1234
+                end
+              end
+            end
+
+            it 'has an alias of model_valid? hook with for the specified task model name' do
+              run_worker
+              expect(task_worker.user_valid?).to eq mock_result
+            end
           end
         end
 
@@ -159,6 +184,13 @@ describe Sidekiq::ActiveRecord::TaskWorker do
               end
             end
 
+            describe 'method alias' do
+              it 'has an alias of perform_on_model hook with for the specified task model name' do
+                task_worker.perform(user.id)
+                expect(task_worker.perform_on_user).to eq user
+              end
+            end
+
           end
         end
 
@@ -176,6 +208,13 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           it 'skips the perform_on_model' do
             expect(task_worker).to_not receive(:perform_on_model)
             run_worker
+          end
+
+          describe 'method alias' do
+            it 'has an alias of invalid_model hook with for the specified task model name' do
+              run_worker
+              expect(task_worker.invalid_user).to eq user
+            end
           end
 
         end
