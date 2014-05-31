@@ -54,7 +54,27 @@ describe Sidekiq::ActiveRecord::TaskWorker do
       end
     end
 
-    context 'when a Class is specified' do
+    context 'when the specified task model is not a class' do
+
+      it 'raises an ArgumentError' do
+        expect {
+          task_worker_class.send(:sidekiq_task_model, :something_unrelated)
+        }.to raise_error ArgumentError
+      end
+    end
+
+    context 'when the specified task model is not an ActiveRecord class' do
+
+      class NotActiveRecord; end
+
+      it 'raises an ArgumentError' do
+        expect {
+          task_worker_class.send(:sidekiq_task_model, NotActiveRecord)
+        }.to raise_error ArgumentError
+      end
+    end
+
+    context 'when a ActiveRecord class is specified' do
 
       before do
         class UserTaskWorker
@@ -81,7 +101,7 @@ describe Sidekiq::ActiveRecord::TaskWorker do
 
     end
 
-    context 'when a class name is specified' do
+    context 'when an ActiveRecord class name is specified' do
       before do
         class UserTaskWorker
           sidekiq_task_model :user
