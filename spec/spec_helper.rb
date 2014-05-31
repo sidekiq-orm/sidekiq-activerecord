@@ -1,3 +1,4 @@
+require 'byebug'
 require 'sidekiq'
 require 'sidekiq/activerecord'
 require 'factory_girl'
