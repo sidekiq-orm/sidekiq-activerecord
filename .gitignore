@@ -1,2 +1,4 @@
-*.idea
-*.lock
+*.gem
+pkg
+.idea
+*.log
