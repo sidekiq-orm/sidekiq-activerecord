@@ -1,4 +1,6 @@
-require 'byebug'
+if RUBY_ENGINE == 'ruby'
+  require 'byebug'
+end
 require 'sidekiq'
 require 'sidekiq/activerecord'
 require 'factory_girl'
