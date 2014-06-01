@@ -20,6 +20,24 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
 
   let(:models_query) { User.active }
 
+  describe 'perform with default models query' do
+
+    before do
+      class UserManagerWorker < Sidekiq::ActiveRecord::ManagerWorker
+        sidekiq_delegate_task_to MockUserWorker
+        default_models_query -> { User.active }
+      end
+    end
+
+    let(:default_models_query) { User.active }
+    let(:worker_options) { {:batch_size => 300} }
+
+    it 'runs `perform_query_async` with the default models query and the specified options' do
+      expect(UserManagerWorker).to receive(:perform_query_async).with(default_models_query, worker_options)
+      UserManagerWorker.new.perform(worker_options)
+    end
+  end
+
   describe 'perform_query_async' do
 
     def run_worker(options = {})
