@@ -1,4 +1,5 @@
 # Sidekiq::Activerecord
+[![Build Status](https://travis-ci.org/sidekiq-orm/sidekiq-activerecord.svg?branch=master)](https://travis-ci.org/sidekiq-orm/sidekiq-activerecord)
 
 Encapsulates various interactions between [Sidekiq](https://github.com/mperham/sidekiq) and ActiveRecord.
 
@@ -22,8 +23,8 @@ Or install it yourself as:
     $ gem install sidekiq-activerecord
 
 # Usage
+Checkout the project's [Wiki Page](https://github.com/sidekiq-orm/sidekiq-activerecord/wiki)
 
-Checkout our [Wiki Page](https://github.com/sidekiq-orm/sidekiq-activerecord/wiki).
 
 ## Contributing
 
