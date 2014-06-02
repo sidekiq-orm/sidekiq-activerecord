@@ -153,9 +153,9 @@ describe Sidekiq::ActiveRecord::TaskWorker do
 
       context 'when the mode is found' do
 
-        context 'when the model validation is specified' do
-          it 'calls the model_valid? hook' do
-            expect(task_worker).to receive(:model_valid?)
+        context 'when the should_perform_on_model? hook is specified' do
+          it 'calls the should_perform_on_model? hook' do
+            expect(task_worker).to receive(:should_perform_on_model?)
             run_worker
           end
 
@@ -165,23 +165,23 @@ describe Sidekiq::ActiveRecord::TaskWorker do
 
             before do
               class UserTaskWorker
-                def user_valid?
+                def should_perform_on_user?
                   1234
                 end
               end
             end
 
-            it 'has an alias of model_valid? hook with for the specified task model name' do
+            it 'has an alias of should_perform_on_model? hook with for the specified task model name' do
               run_worker
-              expect(task_worker.user_valid?).to eq mock_result
+              expect(task_worker.should_perform_on_user?).to eq mock_result
             end
           end
         end
 
-        context 'when the model is valid' do
+        context 'when the model should be performed' do
 
           before do
-            allow(task_worker).to receive(:model_valid?).and_return(true)
+            allow(task_worker).to receive(:should_perform_on_model?).and_return(true)
           end
 
           it 'calls the perform_on_model with the model' do
@@ -214,14 +214,14 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           end
         end
 
-        context 'when the model is invalid' do
+        context 'when the model should not be performed' do
 
           before do
-            allow(task_worker).to receive(:model_valid?).and_return(false)
+            allow(task_worker).to receive(:should_perform_on_model?).and_return(false)
           end
 
-          it 'calls the invalid_model hook' do
-            expect(task_worker).to receive(:invalid_model)
+          it 'calls the did_not_perform_on_model hook' do
+            expect(task_worker).to receive(:did_not_perform_on_model)
             run_worker
           end
 
@@ -231,9 +231,9 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           end
 
           describe 'method alias' do
-            it 'has an alias of invalid_model hook with for the specified task model name' do
+            it 'has an alias of did_not_perform_on_model hook with for the specified task model name' do
               run_worker
-              expect(task_worker.invalid_user).to eq user
+              expect(task_worker.did_not_perform_on_user).to eq user
             end
           end
 
