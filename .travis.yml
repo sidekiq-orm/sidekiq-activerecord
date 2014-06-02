@@ -9,4 +9,4 @@ rvm:
   - 2.1.2
 matrix:
   allow_failures:
-    - rvm: rbx
+    - rvm: rbx-2

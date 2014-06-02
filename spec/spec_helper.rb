@@ -1,7 +1,8 @@
-if RUBY_ENGINE == 'ruby'
+if RUBY_ENGINE == 'ruby' and RUBY_VERSION != '1.9.3'
   require 'byebug'
 end
 require 'sidekiq'
+require 'sidekiq/testing/inline'
 require 'sidekiq/activerecord'
 require 'factory_girl'
 require 'database_cleaner'
