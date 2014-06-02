@@ -21,8 +21,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'sidekiq',   '>= 2.16'
   spec.add_dependency 'activerecord', '>= 4.0'
 
+  spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '3.0.0.rc1'
   spec.add_development_dependency 'database_cleaner', '>= 1.2.0'
-  spec.add_development_dependency 'sqlite3', '>= 1.3.9'
   spec.add_development_dependency 'factory_girl', '~> 4.0'
 end

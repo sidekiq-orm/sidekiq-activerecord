@@ -54,10 +54,12 @@ module Sidekiq
 
       # Hook to handel an invalid model
       def invalid_model
+        task_model
       end
 
       # Hook to handel not found model
       def not_found_model(identifier)
+        identifier
       end
 
       def fetch_model(identifier)
@@ -72,42 +74,17 @@ module Sidekiq
 
           setup_task_model_alias(model_klass)
 
-          if model_klass.is_a?(String) || model_klass.is_a?(Symbol)
-            model_klass = model_klass.to_s.split('_').map(&:capitalize).join.constantize
-          else
-            model_klass
-          end
-          get_sidekiq_task_options[:model_class] = model_klass
+          get_sidekiq_task_options[:model_class] = active_record_class(model_klass)
         end
 
         def model_class
           klass = get_sidekiq_task_options[:model_class]
-          fail NotImplementedError.new('`model_class` was not specified') unless klass.present?
+          fail NotImplementedError.new('`sidekiq_task_model` was not specified') unless klass.present?
           klass
         end
 
         def identifier_key
           get_sidekiq_task_options[:identifier_key]
-        end
-
-        # aliases task_model with the name of the model
-        #
-        # example:
-        #   sidekiq_task_model: AdminUser # or :admin_user
-        #
-        # then the worker will have access to `admin_user`, which is an alias to `task_model`
-        #
-        #   def perform_on_model
-        #     admin_user == task_model
-        #   end
-        #
-        def setup_task_model_alias(model_klass_name)
-          if model_klass_name.is_a?(Class)
-            model_klass_name = model_klass_name.name.underscore
-          end
-          self.class_exec do
-            alias_method model_klass_name, :task_model
-          end
         end
 
         #
@@ -116,7 +93,45 @@ module Sidekiq
         #
         #   :identifier_key - the model identifier column. Default 'id'
         def sidekiq_task_options(opts = {})
-          @sidekiq_task_options_hash = get_sidekiq_task_options.merge((opts || {}).symbolize_keys!)
+          @sidekiq_task_options_hash = get_sidekiq_task_options.merge((opts).symbolize_keys!)
+        end
+
+
+        private
+
+        # aliases task_model with the name of the model
+        #
+        # example:
+        #   sidekiq_task_model: AdminUser # or :admin_user
+        #
+        # then the worker will have access to `admin_user`, which is an alias to `task_model`
+        #
+        #   def perform_on_admin_user
+        #     admin_user == task_model
+        #   end
+        #
+        # it will add the following method aliases to the hooks:
+        #
+        #   def not_found_admin_user; end
+        #   def admin_user_valid?; end
+        #   def invalid_admin_user; end
+        #
+        def setup_task_model_alias(model_klass_name)
+          if model_klass_name.is_a?(Class)
+            model_klass_name = model_klass_name.name.underscore
+          end
+          {
+              :task_model => model_klass_name,
+              :fetch_model => "fetch_#{model_klass_name}",
+              :not_found_model => "not_found_#{model_klass_name}",
+              :model_valid? => "#{model_klass_name}_valid?",
+              :invalid_model => "invalid_#{model_klass_name}",
+              :perform_on_model => "perform_on_#{model_klass_name}"
+          }.each do |old_name, new_name|
+            self.class_exec do
+              alias_method new_name.to_sym, old_name
+            end
+          end
         end
 
         def get_sidekiq_task_options
@@ -128,6 +143,17 @@ module Sidekiq
               identifier_key: :id
           }
         end
+
+        def active_record_class(model_klass)
+          begin
+            model_klass = model_klass.to_s.classify.constantize
+            raise unless model_klass <= ::ActiveRecord::Base
+          rescue
+            fail ArgumentError.new '`sidekiq_task_model` must be an ActiveRecord model'
+          end
+          model_klass
+        end
+
       end
 
     end
