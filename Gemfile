@@ -3,11 +3,11 @@ gemspec
 
 
 
-platforms :ruby, :rbx do
+platforms :ruby do
   gem 'sqlite3'
 end
 
-platform :mri do
+platform :mri_20, :mri_21 do
   gem 'byebug'
 end
 
