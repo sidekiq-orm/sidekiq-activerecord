@@ -19,11 +19,11 @@ module Sidekiq
       #       Log.error "User not found for token:#{token}"
       #     end
       #
-      #     def model_valid?
+      #     def should_perform_on_model?
       #       user.active?
       #     end
       #
-      #     def invalid_model
+      #     def did_not_perform_on_model
       #       Log.error "User #{user.token} is invalid"
       #     end
       #
@@ -36,10 +36,10 @@ module Sidekiq
         @task_model = fetch_model(identifier)
         return not_found_model(identifier) unless @task_model.present?
 
-        if model_valid?
+        if should_perform_on_model?
           perform_on_model(*args)
         else
-          invalid_model
+          did_not_perform_on_model
         end
       end
 
@@ -47,13 +47,14 @@ module Sidekiq
         task_model
       end
 
-      # recheck the if one of the items is still valid
-      def model_valid?
+      # Hook that can block perform_on_model from being triggered,
+      # e.g in cases when the model is no longer valid
+      def should_perform_on_model?
         true
       end
 
-      # Hook to handel an invalid model
-      def invalid_model
+      # Hook to handel a model that was not performed
+      def did_not_perform_on_model
         task_model
       end
 
@@ -113,8 +114,8 @@ module Sidekiq
         # it will add the following method aliases to the hooks:
         #
         #   def not_found_admin_user; end
-        #   def admin_user_valid?; end
-        #   def invalid_admin_user; end
+        #   def should_perform_on_admin_user?; end
+        #   def did_not_perform_on_admin_user; end
         #
         def setup_task_model_alias(model_klass_name)
           if model_klass_name.is_a?(Class)
@@ -124,8 +125,8 @@ module Sidekiq
               :task_model => model_klass_name,
               :fetch_model => "fetch_#{model_klass_name}",
               :not_found_model => "not_found_#{model_klass_name}",
-              :model_valid? => "#{model_klass_name}_valid?",
-              :invalid_model => "invalid_#{model_klass_name}",
+              :should_perform_on_model? => "should_perform_on_#{model_klass_name}?",
+              :did_not_perform_on_model => "did_not_perform_on_#{model_klass_name}",
               :perform_on_model => "perform_on_#{model_klass_name}"
           }.each do |old_name, new_name|
             self.class_exec do
