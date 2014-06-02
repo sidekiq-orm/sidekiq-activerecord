@@ -6,6 +6,11 @@ module Sidekiq
       DEFAULT_IDENTIFIER_KEY = :id
       DEFAULT_BATCH_SIZE = 1000
 
+      def perform(options = {})
+        default_query = self.class.get_default_models_query
+        self.class.perform_query_async(default_query, options)
+      end
+
 
       class << self
 
@@ -72,6 +77,22 @@ module Sidekiq
         #   :batch_size - Specifies the size of the batch. Default to 1000.
         def sidekiq_manager_options(opts = {})
           @sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
+        end
+
+        # The default of query to run, when the workers runs perform
+        # example
+        #   class UserManagerWorker < Sidekiq::ActiveRecord::ManagerWorker
+        #     sidekiq_delegate_task_to UserTaskWorker
+        #     default_models_query -> { User.active }
+        #   end
+        #
+        #   UserManagerWorker.perform_async(:batch_size => 300)
+        def default_models_query(query)
+          @query = query
+        end
+
+        def get_default_models_query
+          @query.call() if @query.present?
         end
 
         def default_worker_manager_options
