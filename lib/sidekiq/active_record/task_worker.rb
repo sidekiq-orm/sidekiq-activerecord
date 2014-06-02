@@ -24,7 +24,7 @@ module Sidekiq
       #     end
       #
       #     def did_not_perform_on_model
-      #       Log.error "User #{user.token} is invalid"
+      #       Log.error "User #{user.token} is inactive"
       #     end
       #
       #   end
