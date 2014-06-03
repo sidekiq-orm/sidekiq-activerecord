@@ -1,7 +1,7 @@
 # Sidekiq::Activerecord
 [![Build Status](https://travis-ci.org/sidekiq-orm/sidekiq-activerecord.svg?branch=master)](https://travis-ci.org/sidekiq-orm/sidekiq-activerecord)
 
-Encapsulates various interactions between [Sidekiq](https://github.com/mperham/sidekiq) and ActiveRecord.
+[Sidekiq::Activerecord](https://github.com/sidekiq-orm/sidekiq-activerecord) encapsulates common patterns and various interactions between [Sidekiq](https://github.com/mperham/sidekiq) and ActiveRecord.
 
 ## Is It Ready?
 
