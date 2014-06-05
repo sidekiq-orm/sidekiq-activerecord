@@ -11,7 +11,7 @@ If you've been using Sidekiq for a while, you've probably noticed a recurring pa
 ## [Sidekiq::ActiveRecord::TaskWorker](https://github.com/sidekiq-orm/sidekiq-activerecord/wiki/Task-Worker)
 A very conventional pattern, is to have a worker that gets a model identifier, loads it and runs some custom logic on the model. 
 
-[```TaskWorker```]https://github.com/sidekiq-orm/sidekiq-activerecord/wiki/Task-Worker) provides a simple and clean interface, which reduces the boilerplate and exposes only the custom logic.   
+[```TaskWorker```](https://github.com/sidekiq-orm/sidekiq-activerecord/wiki/Task-Worker) provides a simple and clean interface, which reduces the boilerplate and exposes only the custom logic.   
 
 Here's a simple example:
 
