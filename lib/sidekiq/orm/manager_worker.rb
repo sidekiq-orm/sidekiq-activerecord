@@ -49,7 +49,7 @@ module Sidekiq
         def perform_query_async(models_query, options = {})
           set_runtime_options(options)
           models = prepare_models_query(models_query)
-          models.find_in_batches(batch_size: batch_size) do |models_batch|
+          find_in_batches(models) do |models_batch|
             model_attributes = models_batch.map { |model| model_attributes(model) }
             Sidekiq::Client.push_bulk(class: worker_class, args: model_attributes)
           end
@@ -111,9 +111,13 @@ module Sidekiq
           additional_attributes.unshift(id_attribute)
         end
 
+        # override in ORM specific class
         def prepare_models_query(models_query)
-          selected_attributes = [models_query.primary_key.to_sym, identifier_key, additional_keys].uniq
-          models_query.select(selected_attributes)
+          models_query
+        end
+
+        # override in ORM specific class
+        def find_in_batches(models)
         end
 
         def worker_class
