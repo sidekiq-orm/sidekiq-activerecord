@@ -125,16 +125,29 @@ describe Sidekiq::ActiveRecord::TaskWorker do
         end
       end
 
+      describe 'when fetching the model' do
+
+        def run_worker
+          task_worker.perform(user.id, user.email)
+        end
+
+        it 'calls the fetch_model hook' do
+          expect(task_worker).to receive(:fetch_model).with(user.id, user.email)
+          run_worker
+        end
+
+      end
+
       context 'when the model is not found' do
 
         let(:trash_id) { user.id + 10 }
 
         def run_worker
-          task_worker.perform(trash_id)
+          task_worker.perform(trash_id, user.email)
         end
 
         it 'calls the not_found_model hook' do
-          expect(task_worker).to receive(:not_found_model).with(trash_id)
+          expect(task_worker).to receive(:not_found_model).with(trash_id, user.email)
           run_worker
         end
 

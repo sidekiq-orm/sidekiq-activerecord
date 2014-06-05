@@ -33,8 +33,8 @@ module Sidekiq
       #   UserMailerTaskWorker.perform(user.id, :new_email)
       #
       def perform(identifier, *args)
-        @task_model = fetch_model(identifier)
-        return not_found_model(identifier) unless @task_model.present?
+        @task_model = fetch_model(identifier, *args)
+        return not_found_model(identifier, *args) unless @task_model.present?
 
         if should_perform_on_model?
           perform_on_model(*args)
@@ -59,11 +59,11 @@ module Sidekiq
       end
 
       # Hook to handel not found model
-      def not_found_model(identifier)
+      def not_found_model(identifier, *args)
         identifier
       end
 
-      def fetch_model(identifier)
+      def fetch_model(identifier, *args)
         self.class.model_class.find_by(self.class.identifier_key => identifier)
       end
 
