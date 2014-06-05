@@ -111,12 +111,37 @@ module Sidekiq
           additional_attributes.unshift(id_attribute)
         end
 
-        # override in ORM specific class
+        # @override in ORM specific class
+        # Prepares the models collection, before it is executes.
+        # For example, in the context of ActiveRecord - we won't to SELECT only the
+        # needed columns we need. e.g:
+        #
+        # def prepare_models_query(models_query)
+        #   selected_attributes = [models_query.primary_key.to_sym, identifier_key, additional_keys].uniq
+        #   models_query.select(selected_attributes)
+        # end
+        #
+        # Make sure you return the models query
+        #
+        # see: Sidekiq::ActiveRecord::ManagerWorker
         def prepare_models_query(models_query)
           models_query
         end
 
-        # override in ORM specific class
+        # @override in ORM specific class
+        # Goes over the models collection and yields each batch of records.
+        # Essentially, a wrapper for ActiveRecord::Batches.find_in_batches
+        # Example:
+        #
+        #   def find_in_batches(models)
+        #     models.find_in_batches(batch_size: batch_size) do |batch|
+        #       yield batch
+        #     end
+        #   end
+        #
+        # see: Sidekiq::ActiveRecord::ManagerWorker
+        # see: http://api.rubyonrails.org/classes/ActiveRecord/Batches.html#method-i-find_in_batches
+      end
         def find_in_batches(models)
         end
 
