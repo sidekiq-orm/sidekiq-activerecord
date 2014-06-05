@@ -22,7 +22,9 @@ module Sidekiq
         #   :worker_class - the worker class to delegate the task to. Alternative to the default `sidekiq_delegate_task_to`
         #   :identifier_key - the model identifier column. Default 'id'
         #   :additional_keys - additional model keys
-        #   :batch_size - Specifies the size of the batch. Default to 1000.
+        #   :batch_size - Specifies the size of each batch to push in bulk.
+        #                 This is also the number of models to fetch in each find_in_batches query.
+        #                 Default is 1000.
         #
         # @example:
         #   class UserTaskWorker
