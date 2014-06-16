@@ -255,4 +255,61 @@ describe Sidekiq::ActiveRecord::TaskWorker do
       end
     end
   end
+
+  describe 'perform_task_async', :focus do
+
+    before do
+      class UserTaskWorker
+        sidekiq_task_model User
+      end
+    end
+
+    let(:custom_arg1) { 'arg1' }
+    let(:custom_arg2) { 'arg2' }
+
+    before do
+      allow(task_worker_class).to receive(:perform_async)
+    end
+
+    def run_perform_task_async
+      task_worker_class.perform_task_async(user, custom_arg1, custom_arg2)
+    end
+
+    context "when the specified model doesn't match the task_model class" do
+
+      let(:unrelated_model) {
+        Struct.new(:id, :name).new(55, 'Mike')
+      }
+
+      it "raises an ArgumentError and doesn't call perform_async" do
+        expect{
+          task_worker_class.perform_task_async(unrelated_model)
+        }.to raise_error(ArgumentError)
+        expect(task_worker_class).to_not have_received(:perform_async)
+      end
+    end
+
+    context 'when the identifier_key is undefined' do
+      it 'calls perform_async with the task_model.id and optionals arguments' do
+        run_perform_task_async
+        expect(task_worker_class).to have_received(:perform_async).with(user.id, custom_arg1, custom_arg2)
+      end
+    end
+
+    context 'when the identifier_key is defined' do
+
+      before do
+        class UserTaskWorker
+          sidekiq_task_options :identifier_key => :email
+        end
+      end
+
+      it 'calls perform_async with the task_model identifier and optionals arguments' do
+        run_perform_task_async
+        expect(task_worker_class).to have_received(:perform_async).with(user.email, custom_arg1, custom_arg2)
+      end
+    end
+
+  end
+
 end
