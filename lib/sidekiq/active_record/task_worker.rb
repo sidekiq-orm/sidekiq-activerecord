@@ -12,18 +12,18 @@ module Sidekiq
       #   class UserMailerTaskWorker < Sidekiq::ActiveRecord::TaskWorker
       #
       #     sidekiq_task_model User
-      #     sidekiq_task_options :identifier_key => :token
+      #     sidekiq_task_options :identifier_key => :email
       #
       #   end
       #
-      #   user = User.new
+      #   user = User.find_by(:email => user@mail.com)
       #
-      #   UserMailerTaskWorker.perform_async(user.token, arg1, arg2)
+      #   UserMailerTaskWorker.perform_async(user.email, arg1, arg2)
       #
       #   # is the same as doing
-      #   UserMailerTaskWorker.perform_task_async(user, arg1, arg2)
+      #   UserMailerTaskWorker.perform_async_on(user, arg1, arg2)
       #
-      def self.perform_task_async(model, *args)
+      def self.perform_async_on(model, *args)
         fail ArgumentError.new "Specified model must be a #{model_class.to_s}" unless model.class <= model_class
         identifier = model.send(self.identifier_key)
         perform_async(identifier, *args)
