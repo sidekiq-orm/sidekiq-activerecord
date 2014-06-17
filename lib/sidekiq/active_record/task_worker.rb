@@ -5,6 +5,30 @@ module Sidekiq
 
       attr_reader :task_model
 
+      # Helper method, to automatically call the task worker with the identifier.
+      # This will allow you to change the :identifier_key option, without needing to change it in other places.
+      #
+      # @example:
+      #   class UserMailerTaskWorker < Sidekiq::ActiveRecord::TaskWorker
+      #
+      #     sidekiq_task_model User
+      #     sidekiq_task_options :identifier_key => :email
+      #
+      #   end
+      #
+      #   user = User.find_by(:email => user@mail.com)
+      #
+      #   UserMailerTaskWorker.perform_async(user.email, arg1, arg2)
+      #
+      #   # is the same as doing
+      #   UserMailerTaskWorker.perform_async_on(user, arg1, arg2)
+      #
+      def self.perform_async_on(model, *args)
+        fail ArgumentError.new "Specified model must be a #{model_class.to_s}" unless model.class <= model_class
+        identifier = model.send(self.identifier_key)
+        perform_async(identifier, *args)
+      end
+
       # @example:
       #   class UserMailerTaskWorker < Sidekiq::ActiveRecord::TaskWorker
       #
@@ -30,7 +54,7 @@ module Sidekiq
       #   end
       #
       #
-      #   UserMailerTaskWorker.perform(user.id, :new_email)
+      #   UserMailerTaskWorker.perform_async(user.id, :new_email)
       #
       def perform(identifier, *args)
         @task_model = fetch_model(identifier, *args)
