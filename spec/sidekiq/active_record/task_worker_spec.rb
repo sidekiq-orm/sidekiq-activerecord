@@ -92,11 +92,6 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           run_worker
           expect(task_worker.task_model).to eq user
         end
-
-        it 'has an alias of `task_model` withe for the specified model name' do
-          run_worker
-          expect(task_worker.user).to eq user
-        end
       end
 
     end
@@ -117,11 +112,6 @@ describe Sidekiq::ActiveRecord::TaskWorker do
         it 'sets the model' do
           run_worker
           expect(task_worker.task_model).to eq user
-        end
-
-        it 'has an alias of `task_model` withe for the specified model name' do
-          run_worker
-          expect(task_worker.user).to eq user
         end
       end
 
@@ -155,13 +145,6 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           expect(task_worker).to_not receive(:perform_on_model)
           run_worker
         end
-
-        describe 'method alias' do
-          it 'has an alias of not_found_model hook with for the specified task model name' do
-            expect(task_worker.not_found_user(trash_id)).to eq trash_id
-          end
-        end
-
       end
 
       context 'when the mode is found' do
@@ -170,24 +153,6 @@ describe Sidekiq::ActiveRecord::TaskWorker do
           it 'calls the should_perform_on_model? hook' do
             expect(task_worker).to receive(:should_perform_on_model?)
             run_worker
-          end
-
-          describe 'method alias' do
-
-            let(:mock_result) { 1234 }
-
-            before do
-              class UserTaskWorker
-                def should_perform_on_user?
-                  1234
-                end
-              end
-            end
-
-            it 'has an alias of should_perform_on_model? hook with for the specified task model name' do
-              run_worker
-              expect(task_worker.should_perform_on_user?).to eq mock_result
-            end
           end
         end
 
@@ -216,14 +181,6 @@ describe Sidekiq::ActiveRecord::TaskWorker do
                 task_worker.perform(user.id, user.email)
               end
             end
-
-            describe 'method alias' do
-              it 'has an alias of perform_on_model hook with for the specified task model name' do
-                task_worker.perform(user.id)
-                expect(task_worker.perform_on_user).to eq user
-              end
-            end
-
           end
         end
 
@@ -242,21 +199,13 @@ describe Sidekiq::ActiveRecord::TaskWorker do
             expect(task_worker).to_not receive(:perform_on_model)
             run_worker
           end
-
-          describe 'method alias' do
-            it 'has an alias of did_not_perform_on_model hook with for the specified task model name' do
-              run_worker
-              expect(task_worker.did_not_perform_on_user).to eq user
-            end
-          end
-
         end
 
       end
     end
   end
 
-  describe 'perform_async_on', :focus do
+  describe 'perform_async_on' do
 
     before do
       class UserTaskWorker

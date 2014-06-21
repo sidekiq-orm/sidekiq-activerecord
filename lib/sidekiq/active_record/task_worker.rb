@@ -57,13 +57,13 @@ module Sidekiq
       #   UserMailerTaskWorker.perform_async(user.id, :new_email)
       #
       def perform(identifier, *args)
-        @task_model = fetch_model(identifier, *args)
-        return not_found_model(identifier, *args) unless @task_model.present?
+        @task_model = call_alias_method(:fetch_model, identifier, *args)
+        return call_alias_method(:not_found_model, identifier, *args) unless @task_model.present?
 
-        if should_perform_on_model?
-          perform_on_model(*args)
+        if call_alias_method(:should_perform_on_model?)
+          call_alias_method(:perform_on_model, *args)
         else
-          did_not_perform_on_model
+          call_alias_method(:did_not_perform_on_model)
         end
       end
 
@@ -91,6 +91,15 @@ module Sidekiq
         self.class.model_class.find_by(self.class.identifier_key => identifier)
       end
 
+      # Try calling the alias method, and fallback to default name if not defined
+      def call_alias_method(method_name, *args)
+        alias_name = self.class.method_aliases_mapping[method_name]
+        if respond_to?(alias_name.to_sym)
+          send(alias_name, *args)
+        else
+          send(method_name, *args)
+        end
+      end
 
       class << self
 
@@ -121,6 +130,9 @@ module Sidekiq
           @sidekiq_task_options_hash = get_sidekiq_task_options.merge((opts).symbolize_keys!)
         end
 
+        def method_aliases_mapping
+          @_method_aliases_mapping
+        end
 
         private
 
@@ -145,18 +157,19 @@ module Sidekiq
           if model_klass_name.is_a?(Class)
             model_klass_name = model_klass_name.name.underscore
           end
-          {
+          setup_method_aliases_mapping(model_klass_name)
+          alias_method model_klass_name.to_sym, :task_model
+        end
+
+        def setup_method_aliases_mapping(model_klass_name)
+          @_method_aliases_mapping = {
               :task_model => model_klass_name,
               :fetch_model => "fetch_#{model_klass_name}",
               :not_found_model => "not_found_#{model_klass_name}",
               :should_perform_on_model? => "should_perform_on_#{model_klass_name}?",
               :did_not_perform_on_model => "did_not_perform_on_#{model_klass_name}",
               :perform_on_model => "perform_on_#{model_klass_name}"
-          }.each do |old_name, new_name|
-            self.class_exec do
-              alias_method new_name.to_sym, old_name
-            end
-          end
+          }
         end
 
         def get_sidekiq_task_options
