@@ -60,7 +60,7 @@ Checkout the project's [Wiki Page](https://github.com/sidekiq-orm/sidekiq-active
 
 Add this line to your application's Gemfile:
 
-    gem 'sidekiq-activerecord', '~> 0.0.4'
+    gem 'sidekiq-activerecord', '~> 0.0.5'
 
 And then execute:
 
