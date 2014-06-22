@@ -1,8 +1,12 @@
+require 'examples/helper_classes'
+
 module Examples
   class AliasUserTaskWorker < Sidekiq::ActiveRecord::TaskWorker
 
     sidekiq_task_model :user # or User class
     sidekiq_task_options :identifier_key => :email
+
+    sidekiq_options :queue => USER_TASK_QUEUE
 
     def perform_on_user(new_email = nil)
       UserMailer.update_email(user, new_email)

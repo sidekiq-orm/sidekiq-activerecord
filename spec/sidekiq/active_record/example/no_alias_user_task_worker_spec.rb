@@ -17,6 +17,13 @@ module Examples
       allow(logger).to receive(:error)
     end
 
+    context 'when a sidekiq_options is specified' do
+      it 'sets the queue' do
+        sidekiq_options = task_worker_class.send(:get_sidekiq_options)
+        expect(sidekiq_options['queue']).to eq USER_TASK_QUEUE
+      end
+    end
+
     context 'when the user is not found' do
 
       let(:unfound_email) { 'unfound@email.com' }
