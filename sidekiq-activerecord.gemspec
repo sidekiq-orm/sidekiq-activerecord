@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'sidekiq-activerecord'
   spec.version       = Sidekiq::ActiveRecord::VERSION
   spec.authors       = ['Adam Farhi']
-  spec.email         = ['afarhi@ebay.com']
+  spec.email         = ['yelled3@gmail.com']
   spec.summary       = 'Encapsulates various interactions between Sidekiq and ActiveRecord'
   spec.description   = spec.summary
   spec.homepage      = 'https://github.com/yelled3/sidekiq-activerecord'
