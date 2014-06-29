@@ -223,7 +223,7 @@ describe Sidekiq::ActiveRecord::TaskWorker do
     context "when the specified model doesn't match the task_model class" do
 
       let(:unrelated_model) {
-        Struct.new(:id, :name).new(55, 'Mike')
+        Struct.new(:id, :first_name).new(55, 'Mike')
       }
 
       it "raises an ArgumentError and doesn't call perform_async" do
