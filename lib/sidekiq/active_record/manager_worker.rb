@@ -21,7 +21,8 @@ module Sidekiq
         # @param options Hash
         #   :worker_class - the worker class to delegate the task to. Alternative to the default `sidekiq_delegate_task_to`
         #   :identifier_key - the model identifier column. Default 'id'
-        #   :additional_keys - additional model keys
+        #   :selected_attributes - the attributes to SELECT for models query
+        #   :additional_keys - additional model keys - defaults to :selected_attributes
         #   :batch_size - Specifies the size of each batch to push in bulk.
         #                 This is also the number of models to fetch in each find_in_batches query.
         #                 Default is 1000.
@@ -39,7 +40,8 @@ module Sidekiq
         #     sidekiq_delegate_task_to :user_task_worker # or UserTaskWorker
         #     sidekiq_manager_options :batch_size => 500,
         #                             :identifier_key => :user_token,
-        #                             :additional_keys => [:status]
+        #                             :selected_attributes => [:first_name, :last_name, :email],
+        #                             :additional_keys => [:full_name, :email]
         #   end
         #
         #   UserSyncer.perform_query_async(User.active, :batch_size => 300)
