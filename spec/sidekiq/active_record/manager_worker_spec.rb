@@ -130,26 +130,57 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
       end
     end
 
-    context 'when the additional_keys are specified' do
+    context 'when the selected_attributes are specified' do
 
-      let(:additional_keys) { [:email, :status] }
+      let(:selected_attributes) { [:email, :status] }
 
       def batch_args(*users)
         {class: worker_class, args: users.map{ |user| [user.id, user.email, user.status] }}
       end
 
       context 'as method arguments' do
-        it 'pushes a bulk of all user ids and additional_keys' do
+        it 'pushes a bulk of all user ids and selected_attributes' do
           expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
-          run_worker({additional_keys: additional_keys})
+          run_worker({selected_attributes: selected_attributes})
         end
       end
 
       context 'as sidekiq_manager_options' do
         around do |example|
-          mock_options(:additional_keys => additional_keys)
+          mock_options(:selected_attributes => selected_attributes)
           example.run
-          mock_options(:additional_keys => [])
+          mock_options(:selected_attributes => [])
+        end
+
+        it 'pushes a bulk of all user ids and selected_attributes' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
+          run_worker
+        end
+      end
+
+    end
+
+    context 'when the additional_keys are specified' do
+
+      let(:selected_attributes) { [:first_name, :last_name] }
+      let(:additional_keys) { [:full_name] } # a method on User model
+
+      def batch_args(*users)
+        {class: worker_class, args: users.map{ |user| [user.id, user.full_name] }}
+      end
+
+      context 'as method arguments' do
+        it 'pushes a bulk of all user ids and additional_keys' do
+          expect(sidekiq_client).to receive(:push_bulk).with( batch_args(user_1, user_2, user_3) )
+          run_worker(selected_attributes: selected_attributes, additional_keys: additional_keys)
+        end
+      end
+
+      context 'as sidekiq_manager_options' do
+        around do |example|
+          mock_options(:selected_attributes => selected_attributes, :additional_keys => additional_keys)
+          example.run
+          mock_options(:selected_attributes => [], :additional_keys => [])
         end
 
         it 'pushes a bulk of all user ids and additional_keys' do
@@ -157,7 +188,6 @@ describe Sidekiq::ActiveRecord::ManagerWorker do
           run_worker
         end
       end
-
     end
 
     context 'when the identifier_key is specified' do

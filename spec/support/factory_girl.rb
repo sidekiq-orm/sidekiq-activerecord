@@ -5,7 +5,8 @@ end
 FactoryGirl.define do
   factory :user do
 
-    sequence(:name) { |n| "name-#{n}" }
+    sequence(:first_name) { |n| "first-name-#{n}" }
+    sequence(:last_name) { |n| "last-name-#{n}" }
     sequence(:email) { |n| "email-#{n}" }
 
     trait :active do

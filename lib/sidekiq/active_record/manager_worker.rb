@@ -21,7 +21,8 @@ module Sidekiq
         # @param options Hash
         #   :worker_class - the worker class to delegate the task to. Alternative to the default `sidekiq_delegate_task_to`
         #   :identifier_key - the model identifier column. Default 'id'
-        #   :additional_keys - additional model keys
+        #   :selected_attributes - the attributes to SELECT for models query
+        #   :additional_keys - additional model keys - defaults to :selected_attributes
         #   :batch_size - Specifies the size of each batch to push in bulk.
         #                 This is also the number of models to fetch in each find_in_batches query.
         #                 Default is 1000.
@@ -39,7 +40,8 @@ module Sidekiq
         #     sidekiq_delegate_task_to :user_task_worker # or UserTaskWorker
         #     sidekiq_manager_options :batch_size => 500,
         #                             :identifier_key => :user_token,
-        #                             :additional_keys => [:status]
+        #                             :selected_attributes => [:first_name, :last_name, :email],
+        #                             :additional_keys => [:full_name, :email]
         #   end
         #
         #   UserSyncer.perform_query_async(User.active, :batch_size => 300)
@@ -75,7 +77,8 @@ module Sidekiq
         #
         #   :worker_class - the worker class to delegate the task to. Alternative to `sidekiq_delegate_task_to`
         #   :identifier_key - the model identifier column. Default 'id'
-        #   :additional_keys - additional model keys
+        #   :selected_attributes - the attributes to SELECT for models query
+        #   :additional_keys - additional model keys - defaults to :selected_attributes
         #   :batch_size - Specifies the size of the batch. Default to 1000.
         def sidekiq_manager_options(opts = {})
           @sidekiq_manager_options_hash = get_sidekiq_manager_options.merge((opts || {}))
@@ -100,6 +103,7 @@ module Sidekiq
         def default_worker_manager_options
           {
               identifier_key: DEFAULT_IDENTIFIER_KEY,
+              selected_attributes: [],
               additional_keys: [],
               batch_size: DEFAULT_BATCH_SIZE
           }
@@ -114,8 +118,8 @@ module Sidekiq
         end
 
         def prepare_models_query(models_query)
-          selected_attributes = [models_query.primary_key.to_sym, identifier_key, additional_keys].uniq
-          models_query.select(selected_attributes)
+          selected_attrs = [models_query.primary_key.to_sym, identifier_key, selected_attributes].uniq
+          models_query.select(selected_attrs)
         end
 
         def worker_class
@@ -127,8 +131,13 @@ module Sidekiq
           manager_options[:identifier_key]
         end
 
+        def selected_attributes
+          manager_options[:selected_attributes]
+        end
+
         def additional_keys
-          manager_options[:additional_keys]
+          additional = manager_options[:additional_keys]
+          additional.present? ? additional :  selected_attributes
         end
 
         def batch_size
